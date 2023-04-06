@@ -140,6 +140,8 @@ router.post("/updateStock", upload.single("uploadfile"), (req, res) => {
         Y: "fssai",
         Z: "country",
         AA: "expiry",
+        AB: "customercare",
+        AC: "units",
       },
     });
 
@@ -171,6 +173,8 @@ router.post("/updateStock", upload.single("uploadfile"), (req, res) => {
             fssai: item.fssai,
             country: item.country,
             expiry: item.expiry,
+            customercare: item.customercare,
+            units: item.units,
           },
         },
         (err, data) => {

@@ -13,9 +13,6 @@ const uploadSingleImage = require("./routes/uploadSingleImage");
 const uploadVideo = require("./routes/uploadVideo");
 const themeRoutes = require("./routes/themeRoutes");
 const headingRoutes = require("./routes/headingRoutes");
-const payment = require("./routes/payment");
-// const employee = require("./routes/employeeRoutes");
-// const delivery = require("./routes/deliveryRoutes");
 const admin = require("./routes/adminRoutes");
 const orderAgainRoutes = require("./routes/orderAgainRoutes");
 const pincode = require("./routes/pincodeRoutes");
@@ -24,6 +21,7 @@ const coupen = require("./routes/coupenRoutes");
 const template = require("./document/template");
 const rnPushTokens = require("./routes/rnPushTokens");
 const send = require("./routes/send");
+const fast2smsotp = require("./routes/otpSMS");
 const pdf = require("html-pdf");
 const cors = require("cors");
 
@@ -37,6 +35,7 @@ app.use(
 
 app.use(express.json());
 app.use("/api/rnPushTokens", rnPushTokens);
+app.use("/api/fast2sms", fast2smsotp);
 app.use("/api/sendNoti", send);
 app.use("/api/upload", uploadProducts);
 app.use("/api/users", userRoutes);
@@ -53,7 +52,6 @@ app.use("/api/rewards", rewardRoutes);
 app.use("/api/uploadImages", uploadImages);
 app.use("/api/uploadSingleImage", uploadSingleImage);
 app.use("/api/uploadVideo", uploadVideo);
-app.use("/api/payment", payment);
 app.use("/api/pincode", pincode);
 app.use("/api/coupen", coupen);
 app.use("/api/admin", admin);

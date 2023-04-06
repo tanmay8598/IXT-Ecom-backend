@@ -40,9 +40,9 @@ const authUser = asyncHandler(async (req, res) => {
 //@access   Public
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, phone } = req.body;
+  const { phone, verificationCode } = req.body;
 
-  const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ phone: phone });
 
   if (userExists) {
     res.status(404);
@@ -50,10 +50,9 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-    name,
-    email,
-    password,
     phone,
+    verificationCode,
+    name: "New User",
   });
 
   if (user) {
@@ -71,17 +70,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     res.status(201).json({
       _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      isDealer: user.isDealer,
-      token: generateToken(
-        user._id,
-        user.name,
-        user.email,
-        user.shippingAddress,
-        user.isDealer
-      ),
+      code: user.verificationCode,
+      mobile: user.phone,
     });
   } else {
     res.status(404);
@@ -208,18 +198,17 @@ const saveShippingAddress = asyncHandler(async (req, res) => {
   if (user) {
     user.shippingAddress = req.body.shippingAddress || user.shippingAddress;
     const updatedUser = await user.save();
-
+    // console.log(updatedUser);
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
-      email: updatedUser.email,
       shippingAddress: updateUser.shippingAddress,
       token: generateToken(
         updatedUser._id,
-        updatedUser.name,
-        updatedUser.email,
+        updatedUser.phone,
         updatedUser.shippingAddress,
-        updatedUser.isDealer
+        updatedUser.isDealer,
+        updatedUser.name
       ),
     });
   } else {
@@ -267,6 +256,50 @@ const updateRewardPoints = asyncHandler(async (req, res) => {
   }
 });
 
+const clearVerificationCode = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.body.id);
+
+  if (user) {
+    user.verificationCode = "";
+
+    const updatedUser = await user.save();
+
+    res.status(201).json({
+      user: updatedUser,
+      token: generateToken(
+        user._id,
+        user.phone,
+        user.shippingAddress,
+        user.isDealer,
+        user.name
+      ),
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+const updateOTPLogin = asyncHandler(async (req, res) => {
+  const { phone, verificationCode } = req.body;
+
+  const user = await User.findOne({ phone });
+
+  if (user) {
+    user.verificationCode = verificationCode;
+
+    const updatedUser = await user.save();
+
+    res.status(201).json({
+      _id: updatedUser._id,
+      code: updatedUser.verificationCode,
+      mobile: updatedUser.phone,
+    });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
 module.exports = {
   removeDealer,
   authUser,
@@ -281,4 +314,6 @@ module.exports = {
   assignDealer,
   getDealers,
   updateRewardPoints,
+  clearVerificationCode,
+  updateOTPLogin,
 };

@@ -5,19 +5,9 @@ const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
     },
     phone: {
-      type: Number,
+      type: String,
       required: true,
     },
     shippingAddress: {
@@ -41,6 +31,9 @@ const userSchema = mongoose.Schema(
       default: false,
     },
     pushToken: {
+      type: String,
+    },
+    verificationCode: {
       type: String,
     },
   },

@@ -13,6 +13,8 @@ const {
   removeDealer,
   getDealers,
   updateRewardPoints,
+  clearVerificationCode,
+  updateOTPLogin,
 } = require("../controller/userController");
 const admin = require("../middleware/authMiddleware");
 const router = express.Router();
@@ -24,6 +26,8 @@ router.post("/assigndealer", assignDealer);
 router.post("/removedealer", removeDealer);
 router.post("/updateRewardPoints", updateRewardPoints);
 router.get("/getdealers", getDealers);
+router.post("/clearVerificationCode", clearVerificationCode);
+router.post("/updateOTPLogin", updateOTPLogin);
 
 router.route("/profile").get(getUserProfile).put(updateUserProfile);
 router

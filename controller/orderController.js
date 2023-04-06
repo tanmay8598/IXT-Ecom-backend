@@ -27,7 +27,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = (orderItems, paymentMethod, totalPrice, user) => {
+const sendEmail = (
+  orderItems,
+  paymentMethod,
+  totalPrice,
+  user,
+  shippingAddress
+) => {
   const items = orderItems;
   var options = { format: "A4" };
 
@@ -36,7 +42,7 @@ const sendEmail = (orderItems, paymentMethod, totalPrice, user) => {
     .toFile(`${__dirname}/invoice1.pdf`, (err) => {
       transporter.sendMail({
         from: ` Subhash Super Store <subhas.store2023@gmail.com>`, // sender address
-        to: `${user.email}`, // list of receivers
+        to: `${shippingAddress.email}`, // list of receivers
         replyTo: `<subhas.store2023@gmail.com>`,
         subject: `Order Confirm ${user?.name}`, // Subject line
         text: `Order from Subhash Super Store`, // plain text body
@@ -98,7 +104,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       reward.amount = a;
       await reward.save();
 
-      sendEmail(orderItems, paymentMethod, totalPrice, user);
+      sendEmail(orderItems, paymentMethod, totalPrice, user, shippingAddress);
       res.status(201).json(order);
     }
   } else {
@@ -131,7 +137,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       reward.amount = itemsPrice * 0.01;
 
       await reward.save();
-      sendEmail(orderItems, paymentMethod, totalPrice, user);
+      sendEmail(orderItems, paymentMethod, totalPrice, user, shippingAddress);
       res.status(201).json(order);
     }
   }

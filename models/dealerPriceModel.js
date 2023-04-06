@@ -12,7 +12,7 @@ const dealerPriceSchema = mongoose.Schema({
     required: true,
   },
   margin: {
-    type: Number,
+    type: String,
   },
   product: {
     type: mongoose.Schema.Types.String,
