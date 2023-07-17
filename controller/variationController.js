@@ -157,7 +157,7 @@ const getActiveCategory = asyncHandler(async (req, res) => {
   res.json(categories);
 });
 const getSubCategory = asyncHandler(async (req, res) => {
-  const categories = await SubCategory.find({});
+  const categories = await SubCategory.find({}).sort({ name: 1 });
   res.json(categories);
 });
 const getActiveSubCategory = asyncHandler(async (req, res) => {
@@ -165,7 +165,7 @@ const getActiveSubCategory = asyncHandler(async (req, res) => {
   res.json(categories);
 });
 const getSpecialCategory = asyncHandler(async (req, res) => {
-  const categories = await SpecialCategory.find({});
+  const categories = await SpecialCategory.find({}).sort({ name: 1 });
   res.json(categories);
 });
 const getActiveSpecialCategory = asyncHandler(async (req, res) => {
@@ -341,7 +341,7 @@ const deleteSize = asyncHandler(async (req, res) => {
 });
 
 const getBrand = asyncHandler(async (req, res) => {
-  const brand = await Brand.find({});
+  const brand = await Brand.find({}).sort({ name: 1 });
   res.json(brand);
 });
 const deleteBrand = asyncHandler(async (req, res) => {
@@ -350,7 +350,7 @@ const deleteBrand = asyncHandler(async (req, res) => {
 });
 
 const getColor = asyncHandler(async (req, res) => {
-  const color = await Color.find({});
+  const color = await Color.find({}).sort({ name: 1 });
   res.json(color);
 });
 const deleteColor = asyncHandler(async (req, res) => {
@@ -359,7 +359,7 @@ const deleteColor = asyncHandler(async (req, res) => {
 });
 
 const getFlavour = asyncHandler(async (req, res) => {
-  const flavour = await Flavour.find({});
+  const flavour = await Flavour.find({}).sort({ name: 1 });
   res.json(flavour);
 });
 const deleteFlavour = asyncHandler(async (req, res) => {
@@ -439,7 +439,7 @@ const createImageBanner = asyncHandler(async (req, res) => {
     desc,
     bg,
     link,
-    productId
+    productId,
   });
   if (s) {
     res.status(201).json(s);

@@ -4,99 +4,51 @@ const User = require("../models/userModel.js");
 const { addRewardPoints } = require("./userRewardController.js");
 const UserReward = require("../models/userReward.js");
 
-// @desc    Auth user & get token
-// @route   POST /api/users/login
-//@access   Public
-
-const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await User.findOne({ email });
-
-  if (user && (await user.matchPassword(password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      shippingAddress: user.shippingAddress,
-      isDealer: user.isDealer,
-      token: generateToken(
-        user._id,
-        user.name,
-        user.email,
-        user.shippingAddress,
-        user.isDealer
-      ),
-    });
-  } else {
-    res.status(401);
-    throw new Error("Invalid email or password");
-  }
-});
-
 // @desc    User registration
 // @route   POST /api/users
 //@access   Public
 
 const registerUser = asyncHandler(async (req, res) => {
   const { phone, verificationCode } = req.body;
+  // console.log(phone);
+  // if (phone == "5555555555") {
+  //   console.log("first");
+  // }
 
   const userExists = await User.findOne({ phone: phone });
 
   if (userExists) {
     res.status(404);
     throw new Error("User already exists");
-  }
+  } else {
+    const user = await User.create({
+      phone,
+      verificationCode,
+      name: "New User",
+    });
 
-  const user = await User.create({
-    phone,
-    verificationCode,
-    name: "New User",
-  });
+    if (user) {
+      const reward = await UserReward.findOne({ user: user._id });
+      const amount = req.body?.amount ? req.body.amount : 0;
+      if (reward) {
+        reward.amount = reward.amount + amount;
+        const updatedReward = await reward.save();
+      } else {
+        const reward = await UserReward.create({
+          user: user._id,
+          amount,
+        });
+      }
 
-  if (user) {
-    const reward = await UserReward.findOne({ user: user._id });
-    const amount = req.body?.amount ? req.body.amount : 0;
-    if (reward) {
-      reward.amount = reward.amount + amount;
-      const updatedReward = await reward.save();
-    } else {
-      const reward = await UserReward.create({
-        user: user._id,
-        amount,
+      res.status(201).json({
+        _id: user._id,
+        code: user.verificationCode,
+        mobile: user.phone,
       });
+    } else {
+      res.status(404);
+      throw new Error("Invalid user data");
     }
-
-    res.status(201).json({
-      _id: user._id,
-      code: user.verificationCode,
-      mobile: user.phone,
-    });
-  } else {
-    res.status(404);
-    throw new Error("Invalid user data");
-  }
-});
-
-// @desc    Get user profile
-// @route   GET /api/users/login
-//@access   Private
-
-const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (user) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      name: user.phone,
-      email: user.email,
-      isAdmin: user.isAdmin,
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
   }
 });
 
@@ -108,7 +60,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+    user.phone = req.body.phoneNo || user.phone;
     if (req.body.password) {
       user.password = req.body.password;
     }
@@ -118,12 +70,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     res.status(201).json({
       _id: updatedUser._id,
       name: updatedUser.name,
-      email: updatedUser.email,
+      phone: updatedUser.phone,
       isAdmin: updatedUser.isAdmin,
       token: generateToken(
         updatedUser._id,
-        updatedUser.name,
-        updatedUser.email
+        updatedUser.phone,
+        updatedUser.shippingAddress,
+        updatedUser.isDealer,
+        updatedUser.name
       ),
     });
   } else {
@@ -139,6 +93,7 @@ const getUsers = asyncHandler(async (req, res) => {
   const users = await User.find({ isDealer: false });
   res.json(users);
 });
+
 const getDealers = asyncHandler(async (req, res) => {
   const users = await User.find({ isDealer: true });
   res.json(users);
@@ -149,6 +104,7 @@ const getDealers = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const deleteUser = asyncHandler(async (req, res) => {
+  console.log("delete hit");
   const user = await User.deleteOne({ _id: req.query.id });
 
   res.json({ message: "User removed" });
@@ -176,7 +132,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
+
     user.isAdmin = req.body.isAdmin || user.isAdmin;
 
     const updatedUser = await user.save();
@@ -184,7 +140,7 @@ const updateUser = asyncHandler(async (req, res) => {
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
-      email: updatedUser.email,
+
       isAdmin: updatedUser.isAdmin,
     });
   } else {
@@ -302,9 +258,7 @@ const updateOTPLogin = asyncHandler(async (req, res) => {
 
 module.exports = {
   removeDealer,
-  authUser,
   registerUser,
-  getUserProfile,
   updateUserProfile,
   getUsers,
   deleteUser,

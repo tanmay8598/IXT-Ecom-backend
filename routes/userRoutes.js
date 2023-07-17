@@ -1,7 +1,5 @@
 const express = require("express");
 const {
-  authUser,
-  getUserProfile,
   registerUser,
   updateUserProfile,
   getUsers,
@@ -20,7 +18,7 @@ const admin = require("../middleware/authMiddleware");
 const router = express.Router();
 
 router.route("/").post(registerUser).get(getUsers);
-router.post("/login", authUser);
+
 router.post("/saveshippingaddress", saveShippingAddress);
 router.post("/assigndealer", assignDealer);
 router.post("/removedealer", removeDealer);
@@ -29,7 +27,7 @@ router.get("/getdealers", getDealers);
 router.post("/clearVerificationCode", clearVerificationCode);
 router.post("/updateOTPLogin", updateOTPLogin);
 
-router.route("/profile").get(getUserProfile).put(updateUserProfile);
+router.route("/profile").put(updateUserProfile);
 router
   .route("/:id")
   .delete(deleteUser)

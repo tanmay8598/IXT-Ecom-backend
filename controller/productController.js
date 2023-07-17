@@ -31,6 +31,8 @@ const createProduct = asyncHandler(async (req, res) => {
     fssai,
     country,
     expiry,
+    customercare,
+    units,
   } = req.body;
   const product = await Product.create({
     _id: sku,
@@ -60,6 +62,8 @@ const createProduct = asyncHandler(async (req, res) => {
     fssai,
     country,
     expiry,
+    customercare,
+    units,
   });
 
   const createdProduct = await product.save();
@@ -92,8 +96,8 @@ const getProducts = asyncHandler(async (req, res) => {
     max,
   } = req.query;
 
-  const minprice = price ? min : 0;
-  const maxprice = price ? max : 25000;
+  const minprice = min ? min : 0;
+  const maxprice = max ? max : 25000;
 
   if (minprice || maxprice) {
     const filter = {
@@ -359,6 +363,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     fssai,
     country,
     expiry,
+    hsnCode,
+    customercare,
+    units,
   } = req.body;
 
   const product = await Product.findById(sku);
@@ -388,6 +395,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.fssai = fssai;
     product.expiry = expiry;
     product.country = country;
+    product.hsnCode = hsnCode;
+    product.customercare = customercare;
+    product.units = units;
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);
@@ -554,6 +564,21 @@ const getDealerPricesByProductId = asyncHandler(async (req, res) => {
   }
 });
 
+const downloadProducts = asyncHandler(async (req, res) => {
+  const products = await Product.find({});
+
+  res.json(products);
+});
+
+const getTotalProducts = asyncHandler(async (req, res) => {
+  const countOutOfStock = await Product.countDocuments({
+    countInStock: { $lte: 0 },
+  });
+  const countProduct = await Product.countDocuments();
+
+  res.json({ countOutOfStock, countProduct });
+});
+
 module.exports = {
   outOfStockProduct,
   getRecentReviews,
@@ -579,4 +604,6 @@ module.exports = {
   updateDealerPrice,
   deleteDealerPrice,
   getDealerPricesByProductId,
+  downloadProducts,
+  getTotalProducts,
 };

@@ -1,4 +1,11 @@
-const OrderPDF = function ({ user, items, paymentMethod, totalPrice }) {
+const OrderPDF = function ({
+  user,
+  items,
+  paymentMethod,
+  totalPrice,
+  deliveryCharge,
+  totalSaved,
+}) {
   const today = new Date();
 
   return `
@@ -76,7 +83,7 @@ const OrderPDF = function ({ user, items, paymentMethod, totalPrice }) {
     }
     
     .summary {
-        margin-top: 2px;
+        margin-top: 5px;
         margin-right: 0px;
         margin-left: 50%;
         margin-bottom: 15px;
@@ -130,25 +137,33 @@ const OrderPDF = function ({ user, items, paymentMethod, totalPrice }) {
     
     <table style="text-align: center">
       <tr>
+        <th style="font-size: 9px">No.</th>
         <th style="font-size: 9px">Item Name</th>
-        <th style="font-size: 9px">Item Image</th>
-        <th style="font-size: 9px">Quantity</th>
+       
+        <th style="font-size: 9px">HSN</th>
+        <th style="font-size: 9px">MRP</th>
         <th style="font-size: 9px">Price</th>
-        <th style="text-align: right; font-size: 9px">Amount</th>
+        <th style="font-size: 9px">Discount</th>
+        <th style="font-size: 9px">Quantity</th>
+        <th style="text-align: right; font-size: 9px">Total</th>
       </tr>
     
       ${items.map(
-        (item) =>
+        (item, index) =>
           `  <tr>
-        <td style="font-size: 9px; width: "150px"; overflow-wrap: break-word">${
+          <td style="font-size: 9px">${index + 1}</td>
+        <td style="font-size: 9px; width: "120px"; overflow-wrap: break-word">${
           item.name
         }</td>
-        <td ><img width="40" height="40" src = ${item.image} /></td>
+    
+        <td style="font-size: 9px">${item.hsnCode}</td>
+        <td style="font-size: 9px">₹ ${Number(item.mrp).toFixed(2)}</td>
+        <td style="font-size: 9px">₹ ${Number(item.price).toFixed(2)}</td>
+        <td style="font-size: 9px">₹ ${Number(item.discount).toFixed(2)}</td>
         <td style="font-size: 9px">${item.qty}</td>
-        <td style="font-size: 9px">${item.price}</td>
-        <td style="text-align: right; font-size: 9px">${
+        <td style="text-align: right; font-size: 9px">₹ ${Number(
           item.qty * item.price
-        }</td>
+        ).toFixed(2)}</td>
       </tr>`
       )}
     
@@ -165,10 +180,31 @@ const OrderPDF = function ({ user, items, paymentMethod, totalPrice }) {
                 <td style="font-size: 10px" >Payment Mode</td>
                 <td style="text-align: right; font-size: 9px; font-weight: 700">${paymentMethod}</td>
               </tr>
+            <tr>
+                <td style="font-size: 10px" >Sub Total</td>
+                <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${
+                  Number(totalPrice).toFixed(2) -
+                  Number(deliveryCharge).toFixed(2)
+                }</td>
+              </tr>
+            <tr>
+                <td style="font-size: 10px" >You Saved</td>
+                <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${totalSaved}</td>
+              </tr>
+            <tr>
+                <td style="font-size: 10px" >Delivery Charges</td>
+                <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${deliveryCharge}</td>
+              </tr>
+            <tr>
+                <td style="font-size: 10px" >Total Quantity</td>
+                <td style="text-align: right; font-size: 9px; font-weight: 700"> ${
+                  items?.length
+                }</td>
+              </tr>
                
               <tr>
               <td style="font-size: 9px">Total</td>
-              <td style="text-align: right; font-size: 9px; font-weight: 700">${totalPrice}</td>
+              <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${totalPrice}</td>
             </tr>
             
           </table>

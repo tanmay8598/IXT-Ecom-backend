@@ -25,7 +25,7 @@ const productSchema = mongoose.Schema(
     },
     hsnCode: {
       type: String,
-      required: true,
+      // required: true,
     },
     name: {
       type: String,
@@ -64,7 +64,7 @@ const productSchema = mongoose.Schema(
       ref: "SpecialCategory",
     },
     manufacturer: {
-      String,
+      type: String,
     },
     size: {
       type: mongoose.Schema.Types.Number,

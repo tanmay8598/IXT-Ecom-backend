@@ -24,10 +24,13 @@ const {
   updateDealerPrice,
   deleteDealerPrice,
   getDealerPricesByProductId,
+  downloadProducts,
+  getTotalProducts,
 } = require("../controller/productController");
 const router = express.Router();
 
 router.route("/").get(getProducts);
+router.route("/count").get(getTotalProducts);
 router.route("/outofstockproducts").get(outOfStockProduct);
 router.route("/getdealerpricebyproductid").get(getDealerPricesByProductId);
 router.route("/createdealerprice").post(createDealerPrice);
@@ -52,5 +55,6 @@ router.route("/create-review").post(createProductReview);
 router
   .route("/get-productby-special-category")
   .get(getProductsBySpecialCategory);
+router.route("/download").get(downloadProducts);
 
 module.exports = router;

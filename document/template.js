@@ -2,9 +2,11 @@ const template = function ({
   name,
   address,
   PaymentMode,
-  shippingCharges,
+  deliveryCharge,
   total,
   items,
+  totalSaved,
+  deliverySlot,
 }) {
   const today = new Date();
   return `
@@ -46,18 +48,20 @@ const template = function ({
   }
   
   .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    display: -webkit-box;
+    align-items: center;
+    -webkit-box-pack: justify;
+    justify-content: space-between;
       padding: 10px 5px;
       
   
   }
   .address {
-      display: flex;
-      align-items: center;
+    display: -webkit-box;
+    align-items: center;
+    -webkit-box-pack: justify;
+    justify-content: space-between;
       flex-direction: column;
-      justify-content: space-between;
       padding: 10px 0px 15px 0px;
       line-height: 10px;
       font-size: 12px;
@@ -82,7 +86,7 @@ const template = function ({
   }
   
   .summary {
-      margin-top: 2px;
+      margin-top: 5px;
       margin-right: 0px;
       margin-left: 50%;
       margin-bottom: 15px;
@@ -101,6 +105,7 @@ const template = function ({
   <section  class="header">
           <div>
            <h3>Subhash Super Store</h3>
+           <img width="300" height="100" src ='https://groceryapp-s3bucket.s3.ap-south-1.amazonaws.com/invoice-logo.jpeg' /></td>
           </div>
           <div class="receipt-id" style="margin-top: -120px 0 40px 0">
               
@@ -108,15 +113,11 @@ const template = function ({
   </section> 
   <section class="address">
   
-        <div>
-            <p class="title">From:</p>
-            <h4 style="font-size: 9px; line-height: 5px">Subhash Super Store</h4>
-            <p style="font-size: 9px; line-height: 5px">subhas.store2023@gmail.com</p>
-            <p style="font-size: 9px; line-height: 5px">+91-7388089999</p>
-        </div>
-  
         <div style="margin-bottom: 100px; margin-top: 20px">
-        <p class="title">Bill to:</p>
+        
+
+
+            <p class="title">Bill to:</p>
           <h4 style="font-size: 9px; line-height: 5px">${name}</h4>
           <p style="font-size: 9px; line-height: 5px">${address.email}</p>
           <p style="font-size: 9px; line-height: 5px">${
@@ -128,39 +129,59 @@ const template = function ({
           <p style="font-size: 9px; line-height: 5px">${address.area},${
     address.pincode
   },${address.city}</p>
+
+  <p class="title" >Slot timing:</p>
+  <h4 style="font-size: 9px; line-height: 5px">${deliverySlot}</h4>
+        </div>
+  
+        <div style="margin-bottom: 100px; margin-top: 20px">
+        <p class="title">From:</p>
+        <h4 style="font-size: 9px; line-height: 5px">Subhash Super Store</h4>
+        <p style="font-size: 9px; line-height: 5px">subhas.store2023@gmail.com</p>
+        <p style="font-size: 9px; line-height: 5px">+91-6306591599</p>
+        <p style="font-size: 9px; line-height: 5px">GST: 09AEWPA0282Q1ZU</p>
+        <p style="font-size: 9px; line-height: 5px">FSSAI: 998899 </p>
+        <p style="font-size: 9px; line-height: 5px">TYPE SUPPLY: GOODS AND SERVICES</p>
+        <p style="font-size: 9px; line-height: 5px">PLACE OF SUPPLY: UTTAR PRADESH STATE CODE 09</p>
         </div>
   
      
   </section>
   
   <table style="text-align: center">
-    <tr>
-      <th style="font-size: 9px">Item Name</th>
-      <th style="font-size: 9px">Item Image</th>
-      <th style="font-size: 9px">Quantity</th>
-      <th style="font-size: 9px">Price</th>
-      <th style="text-align: right; font-size: 9px">Amount</th>
-    </tr>
-  
-    ${items.map(
-      (item) =>
-        `  <tr>
-      <td style="font-size: 9px; width: "150px"; overflow-wrap: break-word">${
-        item.name
-      }</td>
-      <td style="font-size: 9px; width: "150px"; overflow-wrap: break-word"><img width="40" height="40" src = ${
-        item.image
-      } /></td>
-      <td style="font-size: 9px">${item.qty}</td>
-      <td style="font-size: 9px">₹${item.price}</td>
-      <td style="text-align: right; font-size: 9px">₹${
-        item.qty * item.price
-      }</td>
-    </tr>`
-    )}
-  
-  
-  </table>
+  <tr>
+    <th style="font-size: 9px">No.</th>
+    <th style="font-size: 9px;width:120px">Item Name</th>
+   
+    <th style="font-size: 9px">HSN</th>
+    <th style="font-size: 9px">MRP</th>
+    <th style="font-size: 9px">Price</th>
+    <th style="font-size: 9px">Discount</th>
+    <th style="font-size: 9px">Quantity</th>
+    <th style="text-align: right; font-size: 9px">Total</th>
+  </tr>
+
+  ${items.map(
+    (item, index) =>
+      `  <tr>
+      <td style="font-size: 9px">${index + 1}</td>
+    <td style="font-size: 9px"; overflow-wrap: break-word">${item.name}</td>
+
+    <td style="font-size: 9px">${item.hsnCode}</td>
+    <td style="font-size: 9px; text-decoration: line-through">₹ ${Number(
+      item.mrp
+    ).toFixed(2)}</td>
+    <td style="font-size: 9px">₹ ${Number(item.price).toFixed(2)}</td>
+    <td style="font-size: 9px">₹ ${Number(item.discount).toFixed(2)}</td>
+    <td style="font-size: 9px">${item.qty}</td>
+    <td style="text-align: right; font-size: 9px">₹ ${Number(
+      item.qty * item.price
+    ).toFixed(2)}</td>
+  </tr>`
+  )}
+
+
+</table>
   
   <section class="summary">
       <table>
@@ -172,10 +193,26 @@ const template = function ({
               <td style="font-size: 10px" >Payment Mode</td>
               <td style="text-align: right; font-size: 9px; font-weight: 700">${PaymentMode}</td>
             </tr>
+            <tr>
+            <td style="font-size: 10px" >Sub Total</td>
+            <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${
+              Number(total).toFixed(2) - Number(deliveryCharge).toFixed(2)
+            }</td>
+          </tr>
+          <tr>
+          <td style="font-size: 10px" >You Saved</td>
+          <td style="text-align: right; font-size: 9px; font-weight: 700">₹ ${totalSaved}</td>
+        </tr>
           <tr>
               <td style="font-size: 10px" >Shipping Charges</td>
-              <td style="text-align: right; font-size: 9px; font-weight: 700">₹${shippingCharges}</td>
+              <td style="text-align: right; font-size: 9px; font-weight: 700">₹${deliveryCharge}</td>
             </tr>
+            <tr>
+            <td style="font-size: 10px" >Total Quantity</td>
+            <td style="text-align: right; font-size: 9px; font-weight: 700"> ${
+              items?.length
+            }</td>
+          </tr>
   
             <tr>
             <td style="font-size: 9px">Total</td>

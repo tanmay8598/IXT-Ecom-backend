@@ -17,6 +17,9 @@ const orderSchema = mongoose.Schema(
           type: mongoose.Schema.Types.String,
           ref: "Product",
         },
+        mrp: { type: String },
+        discount: { type: String },
+        hsnCode: { type: String },
       },
     ],
     shippingAddress: {
@@ -30,6 +33,9 @@ const orderSchema = mongoose.Schema(
       email: { type: String, required: true },
     },
     emailDelivery: {
+      type: String,
+    },
+    deliveryCharge: {
       type: String,
     },
     deliverySlot: {

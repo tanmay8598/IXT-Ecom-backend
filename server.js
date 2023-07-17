@@ -55,6 +55,7 @@ app.use("/api/uploadVideo", uploadVideo);
 app.use("/api/pincode", pincode);
 app.use("/api/coupen", coupen);
 app.use("/api/admin", admin);
+
 app.post("/api/create-pdf", (req, res) => {
   pdf.create(template(req.body), {}).toFile("invoice.pdf", (err) => {
     if (err) {

@@ -32,13 +32,25 @@ const sendEmail = (
   paymentMethod,
   totalPrice,
   user,
-  shippingAddress
+  shippingAddress,
+  deliveryCharge,
+  totalSaved
 ) => {
   const items = orderItems;
   var options = { format: "A4" };
 
   pdf
-    .create(OrderPDF({ items, user, paymentMethod, totalPrice }), options)
+    .create(
+      OrderPDF({
+        items,
+        user,
+        paymentMethod,
+        totalPrice,
+        deliveryCharge,
+        totalSaved,
+      }),
+      options
+    )
     .toFile(`${__dirname}/invoice1.pdf`, (err) => {
       transporter.sendMail({
         from: ` Subhash Super Store <subhas.store2023@gmail.com>`, // sender address
@@ -72,6 +84,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     deliverySlot,
     gst,
     isPaid,
+    deliveryCharge,
   } = req.body;
 
   if (paymentMethod == "COD") {
@@ -88,6 +101,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       notes,
       deliverySlot,
       gstNumber: gst,
+      deliveryCharge,
     });
     if (order) {
       for (let i = 0; i < orderItems.length; i++) {
@@ -104,7 +118,21 @@ const addOrderItems = asyncHandler(async (req, res) => {
       reward.amount = a;
       await reward.save();
 
-      sendEmail(orderItems, paymentMethod, totalPrice, user, shippingAddress);
+      //calculate total saved amount
+
+      var totalSaved = 0;
+      for (let i = 0; i < orderItems.length; i++) {
+        totalSaved += parseInt(orderItems[i].discount * orderItems[i].qty);
+      }
+      sendEmail(
+        orderItems,
+        paymentMethod,
+        totalPrice,
+        user,
+        shippingAddress,
+        deliveryCharge,
+        totalSaved
+      );
       res.status(201).json(order);
     }
   } else {
@@ -120,6 +148,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       notes,
       deliverySlot,
       isPaid,
+      deliveryCharge,
     });
     if (order && isPaid == true) {
       // count in stock algo
@@ -137,7 +166,20 @@ const addOrderItems = asyncHandler(async (req, res) => {
       reward.amount = itemsPrice * 0.01;
 
       await reward.save();
-      sendEmail(orderItems, paymentMethod, totalPrice, user, shippingAddress);
+
+      var totalSaved = 0;
+      for (let i = 0; i < orderItems.length; i++) {
+        totalSaved += parseInt(orderItems[i].discount * orderItems[i].qty);
+      }
+      sendEmail(
+        orderItems,
+        paymentMethod,
+        totalPrice,
+        user,
+        shippingAddress,
+        deliveryCharge,
+        totalSaved
+      );
       res.status(201).json(order);
     }
   }
