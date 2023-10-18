@@ -3,6 +3,10 @@ const generateToken = require("../utils/generateToken.js");
 const User = require("../models/userModel.js");
 const { addRewardPoints } = require("./userRewardController.js");
 const UserReward = require("../models/userReward.js");
+const endOfDay = require("date-fns/endOfDay");
+const startOfDay = require("date-fns/startOfDay");
+const { parseISO } = require("date-fns");
+const Order = require("../models/orderModel.js");
 
 // @desc    User registration
 // @route   POST /api/users
@@ -10,10 +14,6 @@ const UserReward = require("../models/userReward.js");
 
 const registerUser = asyncHandler(async (req, res) => {
   const { phone, verificationCode } = req.body;
-  // console.log(phone);
-  // if (phone == "5555555555") {
-  //   console.log("first");
-  // }
 
   const userExists = await User.findOne({ phone: phone });
 
@@ -52,6 +52,24 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
+const checkUser = asyncHandler(async (req, res) => {
+  const userExists = await User.findOne({ phone: req.query.phone });
+
+  if (userExists) {
+    res.status(201).json({ message: "user found" });
+  } else {
+    res.status(401).json({ message: "user not found" });
+  }
+});
+
+const downloadCustomers = asyncHandler(async (req, res) => {
+  const customers = await User.find({ isDealer: false }).select(
+    "-password -pushToken -verificationCode"
+  );
+
+  res.json(customers);
+});
+
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
@@ -66,7 +84,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 
     const updatedUser = await user.save();
-    // console.log(updatedUser);
+
     res.status(201).json({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -90,8 +108,17 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @route   Get /api/users
 // @access  Private/Admin
 const getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find({ isDealer: false });
-  res.json(users);
+  const pageSize = 40;
+  const page = Number(req.query.pageNumber) || 1;
+  const count = await User.countDocuments({ isDealer: false });
+  var pageCount = Math.floor(count / 40);
+  if (count % 40 !== 0) {
+    pageCount = pageCount + 1;
+  }
+  const users = await User.find({ isDealer: false })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+  res.json({ users, pageCount, count });
 });
 
 const getDealers = asyncHandler(async (req, res) => {
@@ -104,7 +131,6 @@ const getDealers = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 
 const deleteUser = asyncHandler(async (req, res) => {
-  console.log("delete hit");
   const user = await User.deleteOne({ _id: req.query.id });
 
   res.json({ message: "User removed" });
@@ -154,7 +180,7 @@ const saveShippingAddress = asyncHandler(async (req, res) => {
   if (user) {
     user.shippingAddress = req.body.shippingAddress || user.shippingAddress;
     const updatedUser = await user.save();
-    // console.log(updatedUser);
+
     res.json({
       _id: updatedUser._id,
       name: updatedUser.name,
@@ -256,7 +282,111 @@ const updateOTPLogin = asyncHandler(async (req, res) => {
   }
 });
 
+const getTopCustomers = asyncHandler(async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  const s1 = startOfDay(parseISO(startDate));
+  const s2 = endOfDay(parseISO(endDate));
+
+  const sort = {
+    $sort: {
+      sum: -1,
+    },
+  };
+  const limit = {
+    $limit: 20,
+  };
+
+  const match_stage = {
+    $match: {
+      createdAt: { $gte: s1, $lte: s2 },
+    },
+  };
+
+  const group_stage = {
+    $group: {
+      _id: "$user",
+      count: {
+        $sum: 1,
+      },
+    },
+  };
+  const group_stage2 = {
+    $group: {
+      _id: null,
+      top_users: {
+        $push: { _id: "$_id", sum: "$count" },
+      },
+    },
+  };
+  const pipeline = [match_stage, group_stage, sort, limit, group_stage2];
+  const topSelling = await Order.aggregate(pipeline);
+
+  if (topSelling.length !== 0) {
+    const bestusers = await User.find({
+      _id: { $in: topSelling[0]?.top_users },
+    }).select("_id name phone shippingAddress.email ");
+
+    const users = bestusers.map((item, index) => {
+      for (i = 0; i < topSelling[0]?.top_users.length; i++) {
+        if (topSelling[0].top_users[i]._id.equals(item._id)) {
+          return {
+            _id: item._id,
+            name: item.name,
+            phone: item.phone,
+            sum: topSelling[0].top_users[i].sum,
+          };
+        }
+      }
+    });
+
+    res.json(users);
+  }
+});
+
+const createUser = asyncHandler(async (req, res) => {
+  const { phone, verificationCode, name } = req.body;
+
+  const userExists = await User.findOne({ phone: phone });
+
+  if (userExists) {
+    res.status(404);
+    throw new Error("User already exists");
+  } else {
+    const user = await User.create({
+      phone,
+      verificationCode,
+      name: name ? name : "New User",
+    });
+
+    if (user) {
+      const reward = await UserReward.findOne({ user: user._id });
+      const amount = req.body?.amount ? req.body.amount : 0;
+      if (reward) {
+        reward.amount = reward.amount + amount;
+        const updatedReward = await reward.save();
+      } else {
+        const reward = await UserReward.create({
+          user: user._id,
+          amount,
+        });
+      }
+
+      res.status(201).json({
+        _id: user._id,
+        code: user.verificationCode,
+        mobile: user.phone,
+      });
+    } else {
+      res.status(404);
+      throw new Error("Invalid user data");
+    }
+  }
+});
+
 module.exports = {
+  createUser,
+  getTopCustomers,
   removeDealer,
   registerUser,
   updateUserProfile,
@@ -270,4 +400,6 @@ module.exports = {
   updateRewardPoints,
   clearVerificationCode,
   updateOTPLogin,
+  checkUser,
+  downloadCustomers,
 };

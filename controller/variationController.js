@@ -13,6 +13,8 @@ const ImageBanner = require("../models/ImageBanner");
 const TextBanner = require("../models/textBanner");
 const DeliveryCharge = require("../models/deliveryChargeModel");
 const DeliverySlot = require("../models/deliverySlotModel");
+const SubBrand = require("../models/subBrandsModel");
+const PopBanner = require("../models/popBannerModel");
 
 const s3 = new aws.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -431,7 +433,17 @@ const deleteSpecialCategory = asyncHandler(async (req, res) => {
 });
 
 const createImageBanner = asyncHandler(async (req, res) => {
-  const { img, title, desc, bg, link, productId } = req.body;
+  const {
+    img,
+    title,
+    desc,
+    bg,
+    link,
+    productId,
+    categoryId,
+    subCategoryId,
+    specialCategoryId,
+  } = req.body;
 
   const s = ImageBanner.create({
     img,
@@ -440,6 +452,9 @@ const createImageBanner = asyncHandler(async (req, res) => {
     bg,
     link,
     productId,
+    categoryId,
+    subCategoryId,
+    specialCategoryId,
   });
   if (s) {
     res.status(201).json(s);
@@ -469,6 +484,61 @@ const deleteImgBanner = asyncHandler(async (req, res) => {
   });
 
   await ImageBanner.deleteOne({ _id: req.query.id });
+  res.json("deleted");
+});
+
+const createPopBanner = asyncHandler(async (req, res) => {
+  const {
+    img,
+    title,
+    desc,
+    bg,
+    link,
+    productId,
+    categoryId,
+    subCategoryId,
+    specialCategoryId,
+  } = req.body;
+
+  const s = PopBanner.create({
+    img,
+    title,
+    desc,
+    bg,
+    link,
+    productId,
+    categoryId,
+    subCategoryId,
+    specialCategoryId,
+  });
+  if (s) {
+    res.status(201).json(s);
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
+const getPopBanners = asyncHandler(async (req, res) => {
+  const videos = await PopBanner.find({});
+  res.json(videos);
+});
+
+const deletePopBanner = asyncHandler(async (req, res) => {
+  const imgId = req.query.id;
+  const img1 = await PopBanner.findById(imgId);
+
+  const f1 = img1.img;
+  const fileName = f1.split("//")[1].split("/")[1];
+
+  var params = { Bucket: process.env.AWS_BUCKET, Key: fileName };
+
+  s3.deleteObject(params, function (err, data) {
+    if (err) console.log(err, err.stack);
+    else console.log("Image deleted successfully");
+  });
+
+  await PopBanner.deleteOne({ _id: req.query.id });
   res.json("deleted");
 });
 const createTextBanner = asyncHandler(async (req, res) => {
@@ -514,9 +584,11 @@ const deleteTextBanners = asyncHandler(async (req, res) => {
 // });
 
 const createDeliverySlot = asyncHandler(async (req, res) => {
-  const { slot } = req.body;
+  const { slots, deliveryDate } = req.body;
+
   const s = DeliverySlot.create({
-    slot,
+    slots,
+    deliveryDate,
   });
   if (s) {
     res.status(201).json(s);
@@ -527,7 +599,8 @@ const createDeliverySlot = asyncHandler(async (req, res) => {
 });
 
 const getDeliverySlot = asyncHandler(async (req, res) => {
-  const dc = await DeliverySlot.find({});
+  console.log(req.query.date);
+  const dc = await DeliverySlot.find({ deliveryDate: req.query.date });
   res.json(dc);
 });
 
@@ -537,11 +610,11 @@ const deleteDeliverySlot = asyncHandler(async (req, res) => {
 });
 
 const updateDeliverySlot = asyncHandler(async (req, res) => {
-  const { slot, id } = req.body;
+  const { slots, id } = req.body;
 
   const dc = await DeliverySlot.findById(id);
   if (dc) {
-    dc.slot = slot;
+    dc.slots = slots;
     const updatedDC = await dc.save();
     res.json(updatedDC);
   } else {
@@ -549,8 +622,88 @@ const updateDeliverySlot = asyncHandler(async (req, res) => {
     throw new Error("Error");
   }
 });
+const getSubBrand = asyncHandler(async (req, res) => {
+  const subBrand = await SubBrand.find({}).populate("brand");
+  res.json(subBrand);
+});
+const updateSubBrand = asyncHandler(async (req, res) => {
+  const { id, name, brandId, photoLink } = req.body;
+
+  const subcategory = await SubBrand.findById(id);
+
+  if (subcategory) {
+    subcategory.name = name;
+    subcategory.photo = photoLink ? photoLink : subcategory.photo;
+    subcategory.brand = brandId;
+
+    const updatedBrand = await subcategory.save();
+
+    res.json(updatedBrand);
+  } else {
+    res.status(404);
+    throw new Error("Category not found");
+  }
+});
+const getSubBrandByBrand = asyncHandler(async (req, res) => {
+  const brandId = req.query.brandId;
+
+  const subBrand = await SubBrand.find({ brand: brandId }).populate("brand");
+
+  res.json(subBrand);
+});
+const createSubBrand = asyncHandler(async (req, res) => {
+  const { id, name, brandId, photoLink } = req.body;
+  const s = SubBrand.create({
+    _id: id,
+    name: name,
+    brand: brandId,
+
+    photo: photoLink,
+  });
+  if (s) {
+    res.status(201).json(s);
+  } else {
+    res.status(404);
+    throw new Error("Error");
+  }
+});
+
+const deleteSubBrand = asyncHandler(async (req, res) => {
+  const subid = req.query.id;
+  const sub = await SubBrand.findById(subid);
+
+  const f1 = sub.photo;
+  const fileName = f1.split("//")[1].split("/")[1];
+
+  var params = { Bucket: process.env.AWS_BUCKET, Key: fileName };
+
+  s3.deleteObject(params, function (err, data) {
+    if (err) console.log(err, err.stack);
+    else console.log("Image deleted successfully");
+  });
+
+  await SubBrand.deleteOne({ _id: req.query.id });
+  res.json("deleted");
+});
+const deleteImage = asyncHandler(async (req, res) => {
+  const img = req.query.image;
+
+  console.log(img);
+  const f1 = img;
+  const fileName = f1.split("//")[1].split("/")[1];
+
+  var params = { Bucket: process.env.AWS_BUCKET, Key: fileName };
+
+  s3.deleteObject(params, function (err, data) {
+    if (err) console.log(err, err.stack);
+    else console.log("Image deleted successfully");
+  });
+
+  res.json("deleted");
+});
 
 module.exports = {
+  deleteImage,
   createTextBanner,
   updateTextBanner,
   getTextBanners,
@@ -585,8 +738,11 @@ module.exports = {
   deleteSpecialCategory,
   deleteSubCategory,
   createImageBanner,
+  createPopBanner,
   getImgBanners,
+  getPopBanners,
   deleteImgBanner,
+  deletePopBanner,
   updateCategory,
   activateDeactivateCat,
   activateDeactivateSubCat,
@@ -601,4 +757,9 @@ module.exports = {
   getDeliverySlot,
   deleteDeliverySlot,
   updateDeliverySlot,
+  deleteSubBrand,
+  createSubBrand,
+  getSubBrandByBrand,
+  getSubBrand,
+  updateSubBrand,
 };

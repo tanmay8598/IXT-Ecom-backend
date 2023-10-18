@@ -82,6 +82,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     userId,
     notes,
     deliverySlot,
+    deliveryDate,
     gst,
     isPaid,
     deliveryCharge,
@@ -100,6 +101,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       totalPrice,
       notes,
       deliverySlot,
+      deliveryDate,
       gstNumber: gst,
       deliveryCharge,
     });
@@ -111,6 +113,13 @@ const addOrderItems = asyncHandler(async (req, res) => {
           await product.save();
         }
       }
+      const deliveryslot = await DeliverySlot.findOne({deliveryDate: req.body.date})
+      for (i=0; i<deliverySlot.slots.length; i++) {
+       if( deliveryslot.slots[i].slot == deliverySlot) {
+deliveryslot.slots[i].qty -= 1 
+       }
+      }
+      await deliverySlot.save()
       // reward algo
       const reward = await UserReward.findOne({ user: userId });
 
@@ -147,6 +156,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
       totalPrice,
       notes,
       deliverySlot,
+      deliveryDate,
       isPaid,
       deliveryCharge,
     });
@@ -160,6 +170,13 @@ const addOrderItems = asyncHandler(async (req, res) => {
           await product.save();
         }
       }
+      const deliveryslot = await DeliverySlot.findOne({deliveryDate: req.body.date})
+      for (i=0; i<deliverySlot.slots.length; i++) {
+       if( deliveryslot.slots[i].slot == deliverySlot) {
+deliveryslot.slots[i].qty -= 1 
+       }
+      }
+      await deliverySlot.save()
       // reward algo
       const reward = await UserReward.findOne({ user: userId });
 

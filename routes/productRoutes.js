@@ -26,6 +26,7 @@ const {
   getDealerPricesByProductId,
   downloadProducts,
   getTotalProducts,
+  getTopSellingProducts,
 } = require("../controller/productController");
 const router = express.Router();
 
@@ -51,6 +52,7 @@ router.route("/delete").delete(deleteProduct);
 router.route("/getProductsByCategory").get(getProductsByCategory);
 router.route("/get-productby-groupid").get(getProductByGroupId);
 router.route("/get-productby-sub-category").get(getProductsBySubCategory);
+router.route("/get-topselling-product").get(getTopSellingProducts);
 router.route("/create-review").post(createProductReview);
 router
   .route("/get-productby-special-category")

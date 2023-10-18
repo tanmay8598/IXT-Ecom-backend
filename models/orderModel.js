@@ -41,6 +41,9 @@ const orderSchema = mongoose.Schema(
     deliverySlot: {
       type: String,
     },
+    deliveryDate: {
+      type: String,
+    },
     itemsPrice: {
       type: String,
     },

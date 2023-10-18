@@ -13,8 +13,27 @@ const categoryBannerSchema = mongoose.Schema({
   SpecialCategory: [
     {
       type: mongoose.Schema.Types.Number,
-      required: true,
       ref: "SpecialCategory",
+    },
+  ],
+  Category: [
+    {
+      type: mongoose.Schema.Types.Number,
+      ref: "Category",
+    },
+  ],
+
+  product: [
+    {
+      type: mongoose.Schema.Types.String,
+      ref: "Product",
+    },
+  ],
+
+  subcategory: [
+    {
+      type: mongoose.Schema.Types.Number,
+      ref: "SubCategory",
     },
   ],
 });

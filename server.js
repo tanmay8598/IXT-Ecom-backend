@@ -14,6 +14,8 @@ const uploadVideo = require("./routes/uploadVideo");
 const themeRoutes = require("./routes/themeRoutes");
 const headingRoutes = require("./routes/headingRoutes");
 const admin = require("./routes/adminRoutes");
+const radius = require("./routes/deliveryRadiusRoutes");
+const wishlist = require("./routes/wishlistRoutes");
 const orderAgainRoutes = require("./routes/orderAgainRoutes");
 const pincode = require("./routes/pincodeRoutes");
 const coupen = require("./routes/coupenRoutes");
@@ -55,6 +57,8 @@ app.use("/api/uploadVideo", uploadVideo);
 app.use("/api/pincode", pincode);
 app.use("/api/coupen", coupen);
 app.use("/api/admin", admin);
+app.use("/api/radius", radius);
+app.use("/api/wishlist", wishlist);
 
 app.post("/api/create-pdf", (req, res) => {
   pdf.create(template(req.body), {}).toFile("invoice.pdf", (err) => {

@@ -12,27 +12,38 @@ router.post("/send-notification", async (req, res) => {
   const { token, title, body } = req.body;
 
   const registrationToken = token;
-  let payload = {
+  const message = {
     notification: {
       title: title,
       body: body,
     },
-  };
-
-  const options = {
-    priority: "high",
-    timeToLive: 60 * 60 * 24,
+    android: {
+      notification: {
+        imageUrl: image,
+      },
+    },
+    apns: {
+      payload: {
+        aps: {
+          "mutable-content": 1,
+        },
+      },
+      fcm_options: {
+        image: image,
+      },
+    },
+    token: registrationToken,
   };
 
   admin
     .messaging()
-    .sendToDevice(registrationToken, payload, options)
-    .then(function (response) {
-      res.status(201).send(response);
+    .send(message)
+    .then((response) => {
+      // Response is a message ID string.
+      console.log("Successfully sent message:", response);
     })
-    .catch(function (error) {
-      res.status(404);
-      throw new Error(error);
+    .catch((error) => {
+      console.log("Error sending message:", error);
     });
 });
 

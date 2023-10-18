@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const imageBannerSchema = mongoose.Schema({
+const PopBannerSchema = mongoose.Schema({
   img: {
     type: String,
     required: true,
@@ -31,6 +31,6 @@ const imageBannerSchema = mongoose.Schema({
   },
 });
 
-const ImageBanner = mongoose.model("ImageBanner", imageBannerSchema);
+const PopBanner = mongoose.model("PopBanner", PopBannerSchema);
 
-module.exports = ImageBanner;
+module.exports = PopBanner;

@@ -56,6 +56,7 @@ router.post("/", upload.single("uploadfile"), (req, res) => {
         AA: "expiry",
         AB: "customercare",
         AC: "units",
+        AD: "subBrand"
       },
     });
 
@@ -142,6 +143,7 @@ router.post("/updateStock", upload.single("uploadfile"), (req, res) => {
         AA: "expiry",
         AB: "customercare",
         AC: "units",
+        AD: "subBrand"
       },
     });
 

@@ -48,6 +48,10 @@ const productSchema = mongoose.Schema(
       type: mongoose.Schema.Types.Number,
       ref: "Brand",
     },
+    subBrand: {
+      type: mongoose.Schema.Types.Number,
+      ref: "SubBrand",
+    },
     category: {
       type: mongoose.Schema.Types.Number,
       required: true,

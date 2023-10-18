@@ -1,8 +1,19 @@
 const mongoose = require("mongoose");
 
 const deliverySlotSchema = mongoose.Schema({
-  slot: {
-    type: String,
+  slots: [
+    {
+      slot: {
+        type: String,
+        required: true,
+      },
+    quantity: {
+      type: Number,
+      required: true
+    }},
+  ],
+  deliveryDate: {
+    type: Date,
     required: true,
   },
 });

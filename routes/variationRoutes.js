@@ -57,7 +57,18 @@ const {
   getDeliverySlot,
   updateDeliverySlot,
   deleteDeliverySlot,
+
+  createSubBrand,
+  updateSubBrand,
+  deleteSubBrand,
+  getSubBrandByBrand,
+  getSubBrand,
+  deleteImage,
+  createPopBanner,
+  deletePopBanner,
+  getPopBanners,
 } = require("../controller/variationController");
+const { updateReward, getReward } = require("../controller/rewardController");
 const router = express.Router();
 
 router.route("/deliveryslot").post(createDeliverySlot);
@@ -92,10 +103,12 @@ router.route("/activatespecialcat").post(activateDeactivateSpecialCat);
 //banners
 
 router.route("/create-img-banner").post(createImageBanner);
+router.route("/create-pop-banner").post(createPopBanner);
 
 //get
 router.route("/get-sub-bycat").get(getSubCategoryByCategory);
 router.route("/imgs-banner").get(getImgBanners);
+router.route("/pop-banner").get(getPopBanners);
 router.route("/get-special-bycat").get(getSpecialCategoryByCategory);
 router.route("/get-special-bysub").get(getSpecialCategoryBySubCategory);
 
@@ -117,10 +130,22 @@ router.route("/deletesubcategory").delete(deleteSubCategory);
 router.route("/deletespecialcategory").delete(deleteSpecialCategory);
 
 router.route("/deleteimgbanner").delete(deleteImgBanner);
+router.route("/deletepopbanner").delete(deletePopBanner);
 
 router.route("/textbanner").post(createTextBanner);
 router.route("/update-textbanner").post(updateTextBanner);
 router.route("/gettextbanners").get(getTextBanners);
 router.route("/deletetextbanner").delete(deleteTextBanners);
+
+router.route("/reward").post(updateReward);
+router.route("/reward").get(getReward);
+
+//subBrand
+router.route("/subbrand").post(createSubBrand);
+router.route("/updatesubbrand").post(updateSubBrand);
+router.route("/deletesubbrand").delete(deleteSubBrand);
+router.route("/get-sub-bybrand").get(getSubBrandByBrand);
+router.route("/get-sub-brand").get(getSubBrand);
+router.route("/deleteimage").delete(deleteImage);
 
 module.exports = router;

@@ -1,6 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const DealerPrice = require("../models/dealerPriceModel");
 const Product = require("../models/productModel");
+const endOfDay = require("date-fns/endOfDay");
+const startOfDay = require("date-fns/startOfDay");
+const { parseISO } = require("date-fns");
+const Order = require("../models/orderModel.js");
 
 const createProduct = asyncHandler(async (req, res) => {
   const {
@@ -11,6 +15,7 @@ const createProduct = asyncHandler(async (req, res) => {
     color,
     flavour,
     brand,
+    subBrand,
     category,
     subcategory,
     specialcategory,
@@ -40,6 +45,7 @@ const createProduct = asyncHandler(async (req, res) => {
     groupId,
     image,
     color,
+    subBrand,
     flavour,
     brand,
     category,
@@ -90,10 +96,12 @@ const getProducts = asyncHandler(async (req, res) => {
     size,
     color,
     brand,
+    subBrand,
     price,
     ratings,
     min,
     max,
+    mindiscount,
   } = req.query;
 
   const minprice = min ? min : 0;
@@ -107,6 +115,7 @@ const getProducts = asyncHandler(async (req, res) => {
       size,
       color,
       brand,
+      subBrand,
       minprice,
       maxprice,
       rating: ratings,
@@ -126,6 +135,7 @@ const getProducts = asyncHandler(async (req, res) => {
         justStrings,
         { sell_price: { $gte: minprice } },
         { sell_price: { $lte: maxprice } },
+        { discount: { $gte: mindiscount ? mindiscount : 0 } },
       ],
     });
     var pageCount = Math.floor(count / 20);
@@ -138,13 +148,14 @@ const getProducts = asyncHandler(async (req, res) => {
         justStrings,
         { sell_price: { $gte: minprice } },
         { sell_price: { $lte: maxprice } },
+        { discount: { $gte: mindiscount ? mindiscount : 0 } },
       ],
     })
       .limit(pageSize)
       .sort({ createdAt: -1 })
       .skip(pageSize * (page - 1))
       .populate(
-        "size flavour brand category subcategory specialcategory color limit"
+        "size flavour brand category subcategory specialcategory color limit subBrand"
       );
 
     res.json({ products, pageCount });
@@ -156,6 +167,7 @@ const getProducts = asyncHandler(async (req, res) => {
       size,
       color,
       brand,
+      subBrand,
       price,
       rating: ratings,
     };
@@ -180,7 +192,7 @@ const getProducts = asyncHandler(async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(pageSize * (page - 1))
       .populate(
-        "size flavour brand category subcategory specialcategory color limit"
+        "size flavour brand category subcategory specialcategory color limit subBrand"
       );
 
     res.json({ products, pageCount });
@@ -198,7 +210,9 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
   const products = await Product.find({ category: req.query.catId })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
   res.json({ products, pageCount });
 });
 
@@ -215,9 +229,12 @@ const getProductsBySubCategory = asyncHandler(async (req, res) => {
   })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
   res.json({ products, pageCount });
 });
+
 const getProductsBySpecialCategory = asyncHandler(async (req, res) => {
   const pageSize = 30;
   const page = Number(req.query.pageNumber) || 1;
@@ -233,14 +250,16 @@ const getProductsBySpecialCategory = asyncHandler(async (req, res) => {
   })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
   // console.log(products);
   res.json({ products, pageCount });
 });
 
 const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.query.productId).populate(
-    "color flavour brand category subcategory specialcategory size"
+    "color flavour brand category subcategory specialcategory size subBrand"
   );
   if (product) {
     res.json(product);
@@ -252,7 +271,7 @@ const getProductById = asyncHandler(async (req, res) => {
 
 const getProductByGroupId = asyncHandler(async (req, res) => {
   const products = await Product.find({ groupId: req.query.groupId }).populate(
-    "color flavour brand category subcategory specialcategory size"
+    "color flavour brand category subcategory specialcategory size subBrand"
   );
   // console.log(products);
   if (products) {
@@ -350,6 +369,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     specialcategory,
     manufacturer,
     size,
+    subBrand,
     weight,
     description,
     details,
@@ -376,6 +396,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.description = description;
     product.image = image;
     product.brand = brand;
+    product.subBrand = subBrand;
     product.category = category;
     product.subcategory = subcategory;
     product.specialcategory = specialcategory;
@@ -441,7 +462,9 @@ const outOfStockProduct = asyncHandler(async (req, res) => {
   })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
   res.json({ products, pageCount });
 });
 
@@ -457,7 +480,9 @@ const getBestSellingProducts = asyncHandler(async (req, res) => {
     .sort({ rating: -1 })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
 
   res.json({ products, pageCount });
 });
@@ -474,7 +499,9 @@ const getSaleProducts = asyncHandler(async (req, res) => {
     .sort({ discount: -1 })
     .limit(pageSize)
     .skip(pageSize * (page - 1))
-    .populate("size flavour brand category subcategory specialcategory color");
+    .populate(
+      "size flavour brand category subcategory specialcategory color subBrand"
+    );
   res.json({ products, pageCount });
 });
 
@@ -579,6 +606,76 @@ const getTotalProducts = asyncHandler(async (req, res) => {
   res.json({ countOutOfStock, countProduct });
 });
 
+const getTopSellingProducts = asyncHandler(async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  const s1 = startOfDay(parseISO(startDate));
+  const s2 = endOfDay(parseISO(endDate));
+
+  const unwind = {
+    $unwind: "$orderItems",
+  };
+  const sort = {
+    $sort: {
+      sum: -1,
+    },
+  };
+  const limit = {
+    $limit: 20,
+  };
+
+  const match_stage = {
+    $match: {
+      createdAt: { $gte: s1, $lte: s2 },
+    },
+  };
+
+  const group_stage = {
+    $group: {
+      _id: "$orderItems.product",
+      sum: {
+        $sum: "$orderItems.qty",
+      },
+    },
+  };
+  const group_stage2 = {
+    $group: {
+      _id: null,
+      top_selling_products: {
+        $push: { _id: "$_id", sum: "$sum" },
+      },
+    },
+  };
+  const pipeline = [
+    match_stage,
+    unwind,
+    group_stage,
+    sort,
+    limit,
+    group_stage2,
+  ];
+
+  const topSelling = await Order.aggregate(pipeline);
+
+  if (topSelling.length !== 0) {
+    const bestproducts = await Product.find({
+      _id: { $in: topSelling[0].top_selling_products },
+    }).select("_id name");
+    const products = topSelling[0].top_selling_products.map((item, index) => {
+      for (i = 0; i < bestproducts.length; i++) {
+        if (bestproducts[i]._id == item._id) {
+          return {
+            _id: item._id,
+            name: bestproducts[i].name,
+            sum: item.sum,
+          };
+        }
+      }
+    });
+    res.json(products);
+  }
+});
+
 module.exports = {
   outOfStockProduct,
   getRecentReviews,
@@ -606,4 +703,5 @@ module.exports = {
   getDealerPricesByProductId,
   downloadProducts,
   getTotalProducts,
+  getTopSellingProducts,
 };
